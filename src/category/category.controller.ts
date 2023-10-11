@@ -10,27 +10,37 @@ import {
   HttpStatus,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+
 
 @Controller('category')
 export class CategoryController {
-  constructor(private readonly categoryService: CategoryService) {}
+  constructor(private readonly categoryService: CategoryService, private cloudinary: CloudinaryService) {}
+
+  async uploadImageToCloudinary(file: Express.Multer.File) {
+    return await this.cloudinary.uploadImage(file).catch(() => {
+      throw new BadRequestException('Invalid file type.');
+    });
+  }
+
+
 
   @Post()
   @UseInterceptors(FileInterceptor('image')) // use this and  @UploadedFile() image: Express.Multer.File tag in the argument
   create(@Body() createCategoryDto: any, @UploadedFile() image: Express.Multer.File) {
-    const newObj = {
-      ...createCategoryDto,
-      image
-    }
 
-    console.log(newObj);
-    return newObj
-    // return this.categoryService.create(createCategoryDto);
+    // const newObj = {
+    //   ...createCategoryDto,
+    //   image
+    // }
+
+    return this.categoryService.create(createCategoryDto, image);
   }
 
   @Get()

@@ -9,20 +9,36 @@ import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { PrismaService } from 'src/prisma.service';
 import { Category } from './entities/category.entity';
-
-
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class CategoryService {
-  constructor(private prisma: PrismaService) {}
-  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+  constructor(
+    private prisma: PrismaService,
+    private cloudinary: CloudinaryService,
+  ) {}
+
+  async uploadImageToCloudinary(file: Express.Multer.File) {
+    return await this.cloudinary.uploadImage(file).catch(() => {
+      throw new BadRequestException('Invalid file type.');
+    });
+  }
+
+  async create(createCategoryDto: CreateCategoryDto, image: Express.Multer.File): Promise<any> {
+    const imgResponse = await this.uploadImageToCloudinary(image);
+    // console.log(imgResponse);
+    const newCategory = {
+      data: {
+        ...createCategoryDto,
+        image: imgResponse.secure_url
+      }
+    }
+    // return newCategory
     try {
-      const category = await this.prisma.category.create({
-        data: createCategoryDto,
-      });
+      const category = await this.prisma.category.create(newCategory);
 
       return category;
-    } catch (err) {
+    } catch (err) { 
       throw new HttpException('Invalid request data', HttpStatus.BAD_REQUEST);
     }
   }
@@ -36,26 +52,29 @@ export class CategoryService {
   }
 
   async findOne(id: number): Promise<Category> {
-      const category = await this.prisma.category.findUnique({
-        where: {
-          id,
-        },
-      });
-      if (!category) {
-        throw new NotFoundException('Categories not found');
-      }
+    const category = await this.prisma.category.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!category) {
+      throw new NotFoundException('Categories not found');
+    }
 
-      return category;
+    return category;
   }
 
-  async update(id: number, updateCategoryDto: UpdateCategoryDto): Promise<Category> {
+  async update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
     const category = await this.prisma.category.update({
       where: {
-        id
+        id,
       },
-      data : updateCategoryDto
-    })
-    return category
+      data: updateCategoryDto,
+    });
+    return category;
   }
 
   async remove(id: number) {
@@ -63,9 +82,9 @@ export class CategoryService {
     if (category) {
       await this.prisma.category.delete({
         where: {
-          id
-        }
-      })
+          id,
+        },
+      });
     }
     return category;
   }
