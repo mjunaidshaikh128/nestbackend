@@ -6,10 +6,11 @@ import { Roles } from './auth/roles.decorator';
 import { Role } from './auth/role.enum';
 import { RolesGuard } from './auth/roles.guard';
 import { UsersService } from './users/users.service';
+import { PrismaService } from './prisma.service';
 
 @Controller()
 export class AppController {
-  constructor(private authService: AuthService, private usersService: UsersService) {}
+  constructor(private authService: AuthService, private usersService: UsersService, private prisma: PrismaService) {}
 
   @UseGuards(LocalAuthGuard)
   @Post('auth/login')
@@ -39,4 +40,19 @@ export class AppController {
   getUser(@Param('username') username) {
     return this.usersService.findOne(username)
   }
+
+  @Get('items')
+  async getallItems() {
+    const allItems = await this.prisma.item.findMany({
+      include: {
+        type: true,
+        owner: true,
+        location: true
+      }
+    })
+    return allItems
+  
+  }
+
+
 }

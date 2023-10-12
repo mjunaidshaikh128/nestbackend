@@ -26,4 +26,81 @@ model Category {
   description String?
   status  String
   image String
+  types Type[]
+  items Item[]
+}
+
+model Type {
+  id Int @default(autoincrement()) @id
+  name String @unique
+  category Category @relation(fields: [categoryid], references: [id])
+  categoryid Int
+  items Item[]
+}
+
+model Owner {
+  id  Int   @default(autoincrement()) @id
+  name String
+  items Item[]
+  about String
+  verifiedProfile Boolean
+  rating Float
+  languagesSpoken String?
+  responseTime String?
+  responseRate String?
+  contactEmail String
+}
+
+model Location {
+  id  Int   @default(autoincrement()) @id
+  country String
+  city String
+  address String
+  items Item[]
+
+}
+
+
+model Equipment {
+  id  Int   @default(autoincrement()) @id
+  name String
+  iconClass String
+  items Item[]
+}
+
+model Service {
+  id  Int   @default(autoincrement()) @id
+  name String
+  iconClass String
+  items Item[]
+}
+
+
+
+model Item {
+  id  Int   @default(autoincrement()) @id
+  name String @unique
+  category Category @relation(fields: [categoryid], references: [id])
+  categoryid Int
+  type Type @relation(fields: [typeId], references: [id])
+  typeId Int 
+  owner Owner @relation(fields: [ownerId], references: [id])
+  ownerId Int
+  location Location @relation(fields: [locationId], references: [id])
+  locationId Int
+  images String[]
+  description String
+  equipments Equipment[]
+  services Service[]
+  manufacturer String
+  model String
+  year String
+  capacity String
+  length String
+  enginePower String
+  draft String?
+  cabins String?
+  berths String?
+  bathrooms String?
+
 }
