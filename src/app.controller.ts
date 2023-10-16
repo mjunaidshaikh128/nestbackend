@@ -41,18 +41,19 @@ export class AppController {
     return this.usersService.findOne(username)
   }
 
-  @Get('items')
-  async getallItems() {
-    const allItems = await this.prisma.item.findMany({
-      include: {
-        type: true,
-        owner: true,
-        location: true
-      }
-    })
-    return allItems
+  // @Get('items')
+  // async getallItems() {
+  //   const allItems = await this.prisma.item.findMany({
+  //     include: {
+  //       type: true,
+  //       owner: true,
+  //       location: true,
+  //       equipments: true
+  //     }
+  //   })
+  //   return allItems
   
-  }
+  // }
 
 
 }
