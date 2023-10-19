@@ -6,14 +6,21 @@ import { Type } from '@prisma/client';
 
 @Injectable()
 export class TypeService {
+  constructor(private prisma: PrismaService) {}
 
-constructor(private prisma: PrismaService) {}
+  async create(createTypeDto: any): Promise<Type | undefined> {
+    const { categoryid, ...rest } = createTypeDto;
 
-  async create(createTypeDto: any):Promise<Type | undefined> {
-    return this.prisma.type.create({
-      data: createTypeDto
-      
-    })
+    return await this.prisma.type.create({
+      data: {
+        ...rest,
+        category: {
+          connect: {
+            id: +categoryid,
+          },
+        },
+      },
+    });
   }
 
   async findAll(): Promise<Type[] | undefined> {
@@ -23,28 +30,36 @@ constructor(private prisma: PrismaService) {}
   async findOne(id: number): Promise<Type | undefined> {
     return await this.prisma.type.findUnique({
       where: {
-        id
+        id,
       },
       include: {
-        category: true
-      }
+        category: true,
+      },
     });
   }
 
-  async update(id: number, updateTypeDto: any) {
+  async update(uid: number, updateTypeDto: any) {
+    const { id, categoryid, ...rest } = updateTypeDto;
     return await this.prisma.type.update({
       where: {
-        id
+        id: uid,
       },
-      data: updateTypeDto
-    })
+      data: {
+        ...rest,
+        category: {
+          connect: {
+            id: +categoryid,
+          },
+        },
+      },
+    });
   }
 
   async remove(id: number) {
     return await this.prisma.type.delete({
       where: {
-        id
-      }
+        id,
+      },
     });
   }
 }

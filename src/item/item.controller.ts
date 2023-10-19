@@ -41,8 +41,9 @@ export class ItemController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
-    return this.itemService.update(+id, updateItemDto);
+  @UseInterceptors(FilesInterceptor('images'))
+  update(@Param('id') id: string, @Body() updateItemDto: any, @UploadedFiles() images: Array<Express.Multer.File>) {
+    return this.itemService.update(+id, updateItemDto, images);
   }
 
   @Delete(':id')

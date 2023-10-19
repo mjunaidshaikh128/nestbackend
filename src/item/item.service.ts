@@ -86,6 +86,95 @@ export class ItemService {
     });
   }
 
+  async update(id: number, createItemDto: any, images: Array<Express.Multer.File>) {
+    let imagesUrls: string[] = [];
+    const equipmentIds: any = [];
+    const serviceIds: any = [];
+    // imagesUrls = await this.uploadImages(imagesUrls,images)
+    // console.log(imagesUrls);
+    
+      const PromiseMaps = images.map(async (image) => {
+        if (image) {
+          const imgResponse = await this.cloudinary.uploadImage(image);
+          imagesUrls.push(imgResponse.secure_url);
+        }
+      });
+
+    Promise.all(PromiseMaps).then(async () => {
+      const item = await this.prisma.item.findFirst({
+        where: {
+          id
+        }
+      })
+      const {images} = item
+      const updatedImageUrls = [...images, ...imagesUrls]
+      const dbCreateItemDto = { ...createItemDto, images: updatedImageUrls };
+      console.log(dbCreateItemDto);
+      const {
+        categoryid,
+        typeId,
+        location,
+        owner,
+        equipments,
+        services,
+        ...rest
+      } = dbCreateItemDto;
+      const parsedEquipmentsArray = JSON.parse(equipments)
+      const parsedServicesArray = JSON.parse(services)
+
+      parsedEquipmentsArray.map((eid) => {
+        equipmentIds.push({ id: eid });
+      });
+      parsedServicesArray.map((sid) => {
+        serviceIds.push({ id: sid });
+      });
+      const updatedItem = await this.prisma.item.update({
+        data: {
+          ...rest,
+          category: {
+            connect: {
+              id: +categoryid,
+            },
+          },
+          type: {
+            connect: {
+              id: +typeId,
+            },
+          },
+          location: {
+            connect: {
+              id: +location,
+            },
+          },
+          owner: {
+            connect: {
+              id: +owner,
+            },
+          },
+          equipments: {
+            connect: equipmentIds,
+          },
+          services: {
+            connect: serviceIds,
+          },
+        },
+        where: {
+          id
+        }
+      });
+      console.log(updatedItem);
+      return updatedItem
+    });
+  }
+
+  async uploadImages(imagesUrls: string[], images): Promise<string[]> {
+    images.map(async (image) => {
+        const imgResponse = await this.cloudinary.uploadImage(image);
+        imagesUrls.push(imgResponse.secure_url);
+      });
+    return imagesUrls
+  }
+
   async findAll() {
     return await this.prisma.item.findMany();
   }
@@ -105,14 +194,14 @@ export class ItemService {
     });
   }
 
-  async update(id: number, updateItemDto: UpdateItemDto) {
-    return await this.prisma.item.update({
-      where: {
-        id,
-      },
-      data: updateItemDto,
-    });
-  }
+  // async update(id: number, updateItemDto: UpdateItemDto) {
+  //   return await this.prisma.item.update({
+  //     where: {
+  //       id,
+  //     },
+  //     data: updateItemDto,
+  //   });
+  // }
 
   async remove(id: number) {
     return await this.prisma.item.delete({

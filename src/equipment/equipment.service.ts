@@ -8,23 +8,39 @@ export class EquipmentService {
 
   constructor(private prisma: PrismaService) {}
 
-  create(createEquipmentDto: CreateEquipmentDto) {
-    return 'This action adds a new equipment';
+  async create(createEquipmentDto: any) {
+    return await this.prisma.equipment.create({
+      data: createEquipmentDto
+    });
   }
 
-  findAll() {
-    return this.prisma.equipment.findMany();
+  async findAll() {
+    return await this.prisma.equipment.findMany();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} equipment`;
+  async findOne(id: number) {
+    return await this.prisma.equipment.findUnique({
+      where: {
+        id
+      }
+    });
   }
 
-  update(id: number, updateEquipmentDto: UpdateEquipmentDto) {
-    return `This action updates a #${id} equipment`;
+  async update(id: number, updateEquipmentDto: any) {
+    return await this.prisma.equipment.update({
+      data: updateEquipmentDto,
+      where: {
+        id
+      }
+    }
+    )
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} equipment`;
+  async remove(id: number) {
+    return await this.prisma.equipment.delete({
+      where: {
+        id
+      }
+    });
   }
 }
