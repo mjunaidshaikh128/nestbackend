@@ -13,10 +13,11 @@ import { LocationModule } from './location/location.module';
 import { ServiceModule } from './service/service.module';
 import { EquipmentModule } from './equipment/equipment.module';
 import { ItemModule } from './item/item.module';
+import { BookingModule } from './booking/booking.module';
 
 
 @Module({
-  imports: [AuthModule, UsersModule, CategoryModule, CloudinaryModule, TypeModule, OwnerModule, LocationModule, ServiceModule, EquipmentModule, ItemModule],
+  imports: [AuthModule, UsersModule, CategoryModule, CloudinaryModule, TypeModule, OwnerModule, LocationModule, ServiceModule, EquipmentModule, ItemModule, BookingModule],
   controllers: [AppController],
   providers: [AppService, UsersService, PrismaService],
 })
