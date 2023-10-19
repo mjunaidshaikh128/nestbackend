@@ -111,8 +111,8 @@ model Item {
 
 model Booking {
   id Int @default(autoincrement()) @id
-  checkInDate DateTime
-  checkOutDate DateTime
+  checkInDate DateTime @db.Date
+  checkOutDate DateTime @db.Date
   item Item @relation(fields: [itemId], references: [id])
   itemId Int
   user User @relation(fields: [userId], references: [id])
