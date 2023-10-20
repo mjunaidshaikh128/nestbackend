@@ -23,6 +23,7 @@ export class UsersService {
     },
   ];
 
+  
   async findOne(username: string): Promise<User | undefined> {
     const user = await this.prisma.user.findUnique({
         where: {
@@ -32,6 +33,8 @@ export class UsersService {
     console.log(user);
     return user
   }
+
+
 //   async findAnotherOne(username: string): Promise<User> {
 //     const user = await this.users.find(user => user.username === username)
 //     console.log(user);

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, HttpException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  HttpStatus,
+  HttpException,
+} from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { UpdateBookingDto } from './dto/update-booking.dto';
@@ -9,11 +19,26 @@ export class BookingController {
 
   @Post()
   async create(@Body() createBookingDto: any) {
-    const {itemId, checkInDate, checkOutDate} = createBookingDto
-    const isConflict = await this.bookingService.isBookingConflict(itemId, checkInDate, checkOutDate)
-    if (isConflict) throw new HttpException("Booking Conflict: The requested dates are not available", HttpStatus.CONFLICT)
-    return this.bookingService.create(createBookingDto);
-  // return {msg: "Booking created successfully"}
+    const { itemId, userId, checkInDate, checkOutDate, total } = createBookingDto;
+    const createBookingObject = {
+      itemId: +itemId,
+      userId: +userId,
+      total: +total,
+      checkInDate: new Date(checkInDate),
+      checkOutDate: new Date(checkOutDate),
+    };
+    const isConflict = await this.bookingService.isBookingConflict(
+      +itemId,
+      new Date(checkInDate),
+      new Date(checkOutDate),
+    );
+    if (isConflict)
+      throw new HttpException(
+        'Booking Conflict: The requested dates are not available',
+        HttpStatus.CONFLICT,
+      );
+    return this.bookingService.create(createBookingObject);
+    // return {msg: "Booking created successfully"}
   }
 
   @Get()
@@ -28,12 +53,29 @@ export class BookingController {
 
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateBookingDto: any) {
-    const {itemId, checkInDate, checkOutDate} = updateBookingDto
-    // console.log(updateBookingDto);
-    const isConflict = await this.bookingService.isBookingConflict(itemId, checkInDate, checkOutDate, +id)
-    if (isConflict) throw new HttpException("Booking Conflict: The requested dates are not available", HttpStatus.CONFLICT)
+    const { itemId, userId, checkInDate, checkOutDate, total } = updateBookingDto;
+    const updateBookingObject = {
+      itemId: +itemId,
+      userId: +userId,
+      total: +total,
+      checkInDate: new Date(checkInDate),
+      checkOutDate: new Date(checkOutDate),
+    };
 
-    return this.bookingService.update(+id, updateBookingDto);
+    // console.log(updateBookingDto);
+    const isConflict = await this.bookingService.isBookingConflict(
+      +itemId,
+      new Date(checkInDate),
+      new Date(checkOutDate),
+      +id,
+    );
+    if (isConflict)
+      throw new HttpException(
+        'Booking Conflict: The requested dates are not available',
+        HttpStatus.CONFLICT,
+      );
+
+    return this.bookingService.update(+id, updateBookingObject);
   }
 
   @Delete(':id')

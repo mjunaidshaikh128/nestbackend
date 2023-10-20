@@ -101,24 +101,30 @@ export class BookingService {
 
   async update(id: number, updateBookingDto: any) {
     const { itemId, userId, ...rest } = updateBookingDto;
-    return await this.prisma.booking.update({
-      data: {
-        ...rest,
-        item: {
-          connect: {
-            id: itemId,
+    try {
+      const updatedBooking = await this.prisma.booking.update({
+        data: {
+          ...rest,
+          item: {
+            connect: {
+              id: itemId,
+            },
+          },
+          user: {
+            connect: {
+              id: userId,
+            },
           },
         },
-        user: {
-          connect: {
-            id: userId,
-          },
+        where: {
+          id,
         },
-      },
-      where: {
-        id,
-      },
-    });
+      });
+      return updatedBooking
+
+    } catch (err) {
+      throw new HttpException(`Error: ${err}`, HttpStatus.BAD_REQUEST)
+    }
   }
 
   async remove(id: number): Promise<Booking> {
