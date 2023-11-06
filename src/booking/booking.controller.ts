@@ -19,6 +19,7 @@ export class BookingController {
 
   @Post()
   async create(@Body() createBookingDto: any) {
+    console.log(createBookingDto);
     const { itemId, userId, checkInDate, checkOutDate, total } = createBookingDto;
     const createBookingObject = {
       itemId: +itemId,

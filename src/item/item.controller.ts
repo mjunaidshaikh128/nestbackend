@@ -8,11 +8,13 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
+  Query,
 } from '@nestjs/common';
 import { ItemService } from './item.service';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { FilesInterceptor } from '@nestjs/platform-express/multer/interceptors/files.interceptor';
+import { Item } from '@prisma/client';
 
 @Controller('item')
 export class ItemController {
@@ -35,6 +37,13 @@ export class ItemController {
     return this.itemService.findAll();
   }
 
+  @Get('findByFilter')
+  async findByFilter(@Query() query) {
+    // return query
+    return await this.itemService.filterData(query)
+  }
+
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.itemService.findOne(+id);
@@ -50,4 +59,5 @@ export class ItemController {
   remove(@Param('id') id: string) {
     return this.itemService.remove(+id);
   }
+
 }

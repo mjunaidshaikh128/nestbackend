@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { CreateItemDto } from './dto/create-item.dto';
 import { UpdateItemDto } from './dto/update-item.dto';
 import { PrismaService } from 'src/prisma.service';
@@ -33,12 +38,13 @@ export class ItemService {
     const serviceIds: any = [];
     const PromiseMaps = images.map(async (image) => {
       const imgResponse = await this.cloudinary.uploadImage(image);
-      imagesUrls.push(imgResponse.secure_url);
+      imagesUrls.push(imgResponse.secure_url.split('dtsuwtlgx')[1]);
     });
     Promise.all(PromiseMaps).then(async () => {
       const dbCreateItemDto = { ...createItemDto, images: imagesUrls };
       const {
         categoryid,
+        perDayCost,
         typeId,
         location,
         owner,
@@ -52,62 +58,73 @@ export class ItemService {
       services.map((service) => {
         serviceIds.push({ id: service.id });
       });
-      return await this.prisma.item.create({
-        data: {
-          ...rest,
-          category: {
-            connect: {
-              id: +categoryid,
+      try {
+        const item = await this.prisma.item.create({
+          data: {
+            ...rest,
+            category: {
+              connect: {
+                id: +categoryid,
+              },
             },
-          },
-          type: {
-            connect: {
-              id: +typeId,
+            type: {
+              connect: {
+                id: +typeId,
+              },
             },
-          },
-          location: {
-            connect: {
-              id: +location,
+            location: {
+              connect: {
+                id: +location,
+              },
             },
-          },
-          owner: {
-            connect: {
-              id: +owner,
+            owner: {
+              connect: {
+                id: +owner,
+              },
             },
+            equipments: {
+              connect: equipmentIds,
+            },
+            services: {
+              connect: serviceIds,
+            },
+
+            perDayCost: +perDayCost,
           },
-          equipments: {
-            connect: equipmentIds,
-          },
-          services: {
-            connect: serviceIds,
-          },
-        },
-      });
+        });
+        return item;
+      } catch (err) {
+        throw new HttpException('Invalid request data', HttpStatus.BAD_REQUEST);
+      }
     });
   }
 
-  async update(id: number, createItemDto: any, images: Array<Express.Multer.File>) {
+  async update(
+    id: number,
+    createItemDto: any,
+    images: Array<Express.Multer.File>,
+  ) {
     let imagesUrls: string[] = [];
     const equipmentIds: any = [];
     const serviceIds: any = [];
     // imagesUrls = await this.uploadImages(imagesUrls,images)
     // console.log(imagesUrls);
-    
-      const PromiseMaps = images.map(async (image) => {
-        if (image) {
-          const imgResponse = await this.cloudinary.uploadImage(image);
-          imagesUrls.push(imgResponse.secure_url);
-        }
-      });
+
+    const PromiseMaps = images.map(async (image) => {
+      if (image) {
+        const imgResponse = await this.cloudinary.uploadImage(image);
+        imagesUrls.push(imgResponse.secure_url);
+      }
+    });
 
     Promise.all(PromiseMaps).then(async () => {
       const item = await this.prisma.item.findFirst({
         where: {
-          id
-        }
-      })
-      const {images} = item
-      const updatedImageUrls = [...images, ...imagesUrls]
+          id,
+        },
+      });
+      const { images } = item;
+      const updatedImageUrls = [...images, ...imagesUrls];
       const dbCreateItemDto = { ...createItemDto, images: updatedImageUrls };
       console.log(dbCreateItemDto);
       const {
@@ -119,8 +136,8 @@ export class ItemService {
         services,
         ...rest
       } = dbCreateItemDto;
-      const parsedEquipmentsArray = JSON.parse(equipments)
-      const parsedServicesArray = JSON.parse(services)
+      const parsedEquipmentsArray = JSON.parse(equipments);
+      const parsedServicesArray = JSON.parse(services);
 
       parsedEquipmentsArray.map((eid) => {
         equipmentIds.push({ id: eid });
@@ -159,24 +176,28 @@ export class ItemService {
           },
         },
         where: {
-          id
-        }
+          id,
+        },
       });
       console.log(updatedItem);
-      return updatedItem
+      return updatedItem;
     });
   }
 
   async uploadImages(imagesUrls: string[], images): Promise<string[]> {
     images.map(async (image) => {
-        const imgResponse = await this.cloudinary.uploadImage(image);
-        imagesUrls.push(imgResponse.secure_url);
-      });
-    return imagesUrls
+      const imgResponse = await this.cloudinary.uploadImage(image);
+      imagesUrls.push(imgResponse.secure_url);
+    });
+    return imagesUrls;
   }
 
   async findAll() {
-    return await this.prisma.item.findMany();
+    return await this.prisma.item.findMany({
+      include: {
+        location: true,
+      },
+    });
   }
 
   async findOne(id: number) {
@@ -208,6 +229,30 @@ export class ItemService {
       where: {
         id,
       },
+    });
+  }
+
+  async filterData(query: any) {
+    const { location } = query;
+    let intLocation = []
+    let where = {};
+    
+    if (typeof location === "object") {
+      intLocation = location.map((loc: any) => Number(loc));
+    }
+    if (location) {
+      where = {
+        ...where,
+        location: {
+          id: intLocation.length > 0 ? {
+            in: intLocation
+          } : +location
+        },
+      };
+    }
+
+    return await this.prisma.item.findMany({
+      where,
     });
   }
 }
