@@ -43,6 +43,12 @@ export class ItemController {
     return await this.itemService.filterData(query)
   }
 
+  @Get('search')
+  async search(@Query() query) {
+    // return query
+    return await this.itemService.searchData(query)
+  }
+
 
   @Get(':id')
   findOne(@Param('id') id: string) {

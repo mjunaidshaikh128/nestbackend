@@ -96,7 +96,7 @@ model Item {
   manufacturer String
   model String
   year String
-  capacity String
+  capacity Int @default(0)
   length String
   enginePower String
   draft String?

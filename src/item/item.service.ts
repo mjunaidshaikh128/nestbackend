@@ -233,7 +233,7 @@ export class ItemService {
   }
 
   async filterData(query: any) {
-    const { location } = query;
+    const { location, capacity, price } = query;
     let intLocation = []
     let where = {};
     
@@ -251,8 +251,39 @@ export class ItemService {
       };
     }
 
+    if (capacity) {
+      where = {
+        ...where,
+        capacity: {
+          gte: 0,
+          lte: +capacity
+        }
+      }
+    }
+
+    if (price) {
+      where = {
+        ...where,
+        perDayCost: {
+          gte: 0,
+          lte: +price
+        }
+      }
+    }
+
     return await this.prisma.item.findMany({
       where,
     });
+  }
+
+  async searchData(data: any) {
+    const { query } = data
+    return await this.prisma.item.findMany({
+      where: {
+        name: {
+          contains: query
+        }
+      }
+    })
   }
 }
