@@ -36,10 +36,10 @@ export class AppController {
   getAllUsers(@Request() req) {
     return this.authService.doSomething(req)
   }
-  @Get('user/:username')
-  getUser(@Param('username') username) {
-    return this.usersService.findOne(username)
-  }
+  // @Get('user/:username')
+  // getUser(@Param('username') username) {
+  //   return this.usersService.findOne(username)
+  // }
 
   // @Get('items')
   // async getallItems() {
